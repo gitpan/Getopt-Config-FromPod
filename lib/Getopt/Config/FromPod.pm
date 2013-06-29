@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 # ABSTRACT: Extract getopt configuration from POD
-our $VERSION = 'v0.0.1'; # VERSION
+our $VERSION = 'v0.0.2'; # VERSION
 
 package Getopt::Config::FromPod::Extractor;
 
@@ -76,8 +76,18 @@ sub _extract
 				last;
 			}
 		}
+		confess "Target module not found" if ! defined $file;
+		# At least, in PAR environment, this adjustment is necessary.
+		if(! -f $file) {
+			for my $inc (@INC) {
+				if(-f "$inc/$file") {
+					$file = "$inc/$file";
+					last;
+				}
+			}
+		}
 	}
-	croak if ! defined $file;
+	croak "Target file not found: $file" if ref $file eq '' && ! -f $file;
 	$parser->parse_file($file);
 	return $parser->{_RESULT};
 }
@@ -138,7 +148,7 @@ Getopt::Config::FromPod - Extract getopt configuration from POD
 
 =head1 VERSION
 
-version v0.0.1
+version v0.0.2
 
 =head1 SYNOPSIS
 
